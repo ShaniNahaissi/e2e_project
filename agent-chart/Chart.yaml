@@ -1,0 +1,6 @@
+apiVersion: v2
+name: agent
+description: A Kubernetes native AI Agent that detects failing pods, analyzes logs using Gemini 2.5, and provides root cause analysis.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

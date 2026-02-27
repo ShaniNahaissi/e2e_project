@@ -2,6 +2,8 @@ from kubernetes import client, config, watch
 import redis
 import os
 from google import genai
+import requests
+import json
 
 
 def load_k8s_config():
@@ -50,6 +52,29 @@ def analyze_with_ai(pod_name, reason, message, logs):
         return response.text
     except Exception as e:
         return f"❌ Failed to get AI analysis: {str(e)}"
+
+def send_to_slack(ai_analysis_text):
+    webhook_url = os.environ.get("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        print("⚠️ No Slack Webhook URL configured, skipping Slack alert.")
+        return
+
+    payload = {
+        "text": f"🚨 *Kubernetes Pod Crash Detected & Analyzed* 🚨\n\n{ai_analysis_text}"
+    }
+
+    try:
+        response = requests.post(
+            webhook_url,
+            data=json.dumps(payload),
+            headers={'Content-Type': 'application/json'}
+        )
+        if response.status_code == 200:
+            print("✅ Successfully sent analysis to Slack!")
+        else:
+            print(f"❌ Failed to send to Slack: {response.status_code}, {response.text}")
+    except Exception as e:
+        print(f"❌ Error sending to Slack: {e}")
 
 def main():
     # 1. Initialize Kubernetes API client
@@ -135,6 +160,7 @@ def main():
                     print("\n🤖 === AI ROOT CAUSE ANALYSIS ===")
                     print(ai_analysis)
                     print("==================================\n")
+                    send_to_slack(ai_analysis)
                 else:
                     print("--- No logs found for this Pod (It may not have started) ---")
 

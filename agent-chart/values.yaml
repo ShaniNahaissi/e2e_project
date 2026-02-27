@@ -1,0 +1,12 @@
+image:
+  repository: agent
+  tag: "v11"
+  pullPolicy: IfNotPresent
+
+secrets:
+  geminiApiKey: ""
+  slackWebhookUrl: ""
+
+redis:
+  host: "my-redis-master"
+  port: 6379
